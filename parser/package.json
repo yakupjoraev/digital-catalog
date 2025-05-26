@@ -5,16 +5,26 @@
   "scripts": {
     "parse": "ts-node index.ts",
     "parse:dev": "ts-node-dev --respawn index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cli": "ts-node cli.ts",
+    "sync": "ts-node cli.ts sync",
+    "upload": "ts-node cli.ts upload",
+    "stats": "ts-node cli.ts stats",
+    "clear": "ts-node cli.ts clear",
+    "test": "ts-node testUpload.ts",
+    "test-data": "ts-node -e \"require('./testData').saveTestData()\"",
+    "demo": "npm run test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/pdf-parse": "^1.1.5",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "pdf-parse": "^1.1.1",
+    "puppeteer": "^24.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
