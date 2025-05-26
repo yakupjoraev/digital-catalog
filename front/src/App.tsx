@@ -1,288 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
-import type { ObjectData } from './types';
-import { objectsApi } from './api/client';
-import ObjectCard from './components/ObjectCard';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthPage from './pages/AuthPage';
+import AdminPage from './pages/AdminPage';
+import HomePage from './pages/HomePage';
+import TestAdminPage from './pages/TestAdminPage';
 
 // Компонент заголовка
 const Header: React.FC = () => {
+  const { user, logout, isAdmin } = useAuth();
+  
+  // Отладочная информация (можно удалить позже)
+  console.log('Header Debug:', { user, isAdmin, userRole: user?.role });
+
   return (
     <header className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold text-center">
-          🏛️ Цифровой каталог объектов благоустройства
-        </h1>
-        <p className="text-center text-blue-100 mt-2">
-          Волгоград • Парки • Скверы • Площадки • Набережные
-        </p>
+        <div className="flex justify-between items-center">
+          <div className="text-center flex-1">
+            <Link to="/" className="block hover:text-blue-200 transition-colors">
+              <h1 className="text-3xl font-bold">
+                🏛️ Цифровой каталог объектов благоустройства
+              </h1>
+              <p className="text-blue-100 mt-2">
+                Волгоград • Парки • Скверы • Площадки • Набережные
+              </p>
+            </Link>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <span className="text-sm">
+                  👤 {user.username}
+                  {isAdmin && <span className="ml-1 text-yellow-300">(Админ)</span>}
+                </span>
+                {isAdmin && (
+                  <>
+                    <Link
+                      to="/test-admin"
+                      className="bg-green-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-green-600"
+                    >
+                      🧪 Информация
+                    </Link>
+                    <Link
+                      to="/admin"
+                      className="bg-yellow-500 text-black px-3 py-1 rounded text-sm font-medium hover:bg-yellow-400"
+                    >
+                      🛠️ Админ-панель
+                    </Link>
+                  </>
+                )}
+                <button
+                  onClick={logout}
+                  className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                >
+                  🚪 Выйти
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="bg-green-500 text-white px-4 py-2 rounded font-medium hover:bg-green-600"
+              >
+                🔐 Войти
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
     </header>
   );
 };
 
-// Компонент фильтров
-const Filters: React.FC<{
-  onDistrictChange: (district: string) => void;
-  onTypeChange: (type: string) => void;
-  onSearch: (search: string) => void;
-}> = ({ onDistrictChange, onTypeChange, onSearch }) => {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-lg font-semibold mb-4">🔍 Фильтры и поиск</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Поиск по названию
-          </label>
-          <input
-            type="text"
-            placeholder="Введите название..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => onSearch(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Район
-          </label>
-          <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => onDistrictChange(e.target.value)}
-          >
-            <option value="">Все районы</option>
-            <option value="Центральный">Центральный</option>
-            <option value="Дзержинский">Дзержинский</option>
-            <option value="Ворошиловский">Ворошиловский</option>
-            <option value="Советский">Советский</option>
-            <option value="Тракторозаводский">Тракторозаводский</option>
-            <option value="Красноармейский">Красноармейский</option>
-            <option value="Кировский">Кировский</option>
-            <option value="Краснооктябрьский">Краснооктябрьский</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Тип объекта
-          </label>
-          <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => onTypeChange(e.target.value)}
-          >
-            <option value="">Все типы</option>
-            <option value="парк">🌳 Парк</option>
-            <option value="сквер">🌿 Сквер</option>
-            <option value="детская площадка">🎠 Детская площадка</option>
-            <option value="спортивная площадка">⚽ Спортивная площадка</option>
-            <option value="набережная">🌊 Набережная</option>
-            <option value="фонтан">⛲ Фонтан</option>
-            <option value="площадь">🏛️ Площадь</option>
-            <option value="бульвар">🛣️ Бульвар</option>
-            <option value="другое">📍 Другое</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Компонент статистики
-const Stats: React.FC<{ objects: ObjectData[] }> = ({ objects }) => {
-  const stats = {
-    total: objects.length,
-    byDistrict: objects.reduce((acc, obj) => {
-      acc[obj.district] = (acc[obj.district] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number }),
-    byType: objects.reduce((acc, obj) => {
-      acc[obj.type] = (acc[obj.type] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number }),
-    byStatus: objects.reduce((acc, obj) => {
-      acc[obj.status] = (acc[obj.status] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number }),
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-lg font-semibold mb-4">📊 Статистика</h2>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-          <div className="text-sm text-gray-600">Всего объектов</div>
-        </div>
-        
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.byStatus['активный'] || 0}</div>
-          <div className="text-sm text-gray-600">Активных</div>
-        </div>
-        
-        <div className="text-center">
-          <div className="text-2xl font-bold text-yellow-600">{stats.byStatus['на реконструкции'] || 0}</div>
-          <div className="text-sm text-gray-600">На реконструкции</div>
-        </div>
-        
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">{stats.byStatus['планируется'] || 0}</div>
-          <div className="text-sm text-gray-600">Планируется</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Основной компонент приложения
+const AppContent: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/test-admin" element={<TestAdminPage />} />
+      </Routes>
+
+      <footer className="bg-gray-800 text-white py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="mb-2">
+            🏛️ Цифровой каталог объектов благоустройства Волгограда
+          </p>
+          <p className="text-gray-400 text-sm">
+            Дипломный проект • 2024 • SQLite + Prisma + React + TypeScript
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+// Главный компонент с провайдерами
 const App: React.FC = () => {
-  const [objects, setObjects] = useState<ObjectData[]>([]);
-  const [filteredObjects, setFilteredObjects] = useState<ObjectData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
-    district: '',
-    type: '',
-    search: '',
-  });
-
-  // Загрузка данных
-  useEffect(() => {
-    const loadObjects = async () => {
-      try {
-        setLoading(true);
-        const response = await objectsApi.getAll();
-        if (response.success) {
-          setObjects(response.data);
-          setFilteredObjects(response.data);
-        } else {
-          setError('Ошибка загрузки данных');
-        }
-      } catch (err) {
-        setError('Ошибка загрузки данных');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadObjects();
-  }, []);
-
-  // Применение фильтров
-  useEffect(() => {
-    let filtered = objects;
-
-    if (filters.district) {
-      filtered = filtered.filter(obj => obj.district === filters.district);
-    }
-
-    if (filters.type) {
-      filtered = filtered.filter(obj => obj.type === filters.type);
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(obj =>
-        obj.name.toLowerCase().includes(searchLower) ||
-        obj.description.toLowerCase().includes(searchLower) ||
-        obj.address.toLowerCase().includes(searchLower)
-      );
-    }
-
-    setFilteredObjects(filtered);
-  }, [objects, filters]);
-
-  const handleDistrictChange = (district: string) => {
-    setFilters(prev => ({ ...prev, district }));
-  };
-
-  const handleTypeChange = (type: string) => {
-    setFilters(prev => ({ ...prev, type }));
-  };
-
-  const handleSearch = (search: string) => {
-    setFilters(prev => ({ ...prev, search }));
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Загрузка объектов благоустройства...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <strong>Ошибка:</strong> {error}
-            <p className="mt-2">Убедитесь, что бэкенд сервер запущен на http://localhost:5000</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        
-        <main className="container mx-auto px-4 py-8">
-          <Stats objects={objects} />
-          
-          <Filters
-            onDistrictChange={handleDistrictChange}
-            onTypeChange={handleTypeChange}
-            onSearch={handleSearch}
-          />
-
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              📍 Объекты благоустройства ({filteredObjects.length})
-            </h2>
-            
-            {filteredObjects.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  {objects.length === 0 ? 'Объекты не найдены' : 'Нет объектов, соответствующих фильтрам'}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredObjects.map((object) => (
-                  <ObjectCard key={object.id} object={object} />
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
-
-        <footer className="bg-gray-800 text-white py-8">
-          <div className="container mx-auto px-4 text-center">
-            <p className="mb-2">
-              🏛️ Цифровой каталог объектов благоустройства Волгограда
-            </p>
-            <p className="text-gray-400 text-sm">
-              Дипломный проект • 2024 • SQLite + Prisma + React + TypeScript
-            </p>
-          </div>
-        </footer>
-      </div>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 };

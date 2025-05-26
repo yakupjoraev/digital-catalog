@@ -8,6 +8,7 @@ import {
   getObjectsStats,
   getObjectsNearby
 } from '../controllers/objectController';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -18,9 +19,8 @@ router.get('/nearby', getObjectsNearby);        // GET /api/objects/nearby
 router.get('/:id', getObjectById);              // GET /api/objects/:id
 
 // Защищенные роуты (только для админов)
-// TODO: Добавить middleware для проверки авторизации
-router.post('/', createObject);                 // POST /api/objects
-router.put('/:id', updateObject);               // PUT /api/objects/:id
-router.delete('/:id', deleteObject);            // DELETE /api/objects/:id
+router.post('/', authenticateToken, requireAdmin, createObject);                 // POST /api/objects
+router.put('/:id', authenticateToken, requireAdmin, updateObject);               // PUT /api/objects/:id
+router.delete('/:id', authenticateToken, requireAdmin, deleteObject);            // DELETE /api/objects/:id
 
 export default router; 
