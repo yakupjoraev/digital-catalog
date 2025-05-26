@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import './App.css';
-import type { ObjectData, ObjectType, District, ObjectStatus } from './types';
-import { OBJECT_TYPE_LABELS, DISTRICT_LABELS, STATUS_LABELS } from './types';
+import type { ObjectData } from './types';
 import { objectsApi } from './api/client';
+import ObjectCard from './components/ObjectCard';
 
 // Компонент заголовка
 const Header: React.FC = () => {
@@ -18,56 +18,6 @@ const Header: React.FC = () => {
         </p>
       </div>
     </header>
-  );
-};
-
-// Компонент карточки объекта
-const ObjectCard: React.FC<{ object: ObjectData }> = ({ object }) => {
-  const getTypeLabel = (type: ObjectType) => {
-    return OBJECT_TYPE_LABELS[type] || type;
-  };
-
-  const getDistrictLabel = (district: District) => {
-    return DISTRICT_LABELS[district] || district;
-  };
-
-  const getStatusLabel = (status: ObjectStatus) => {
-    return STATUS_LABELS[status] || { label: status, color: 'text-gray-600' };
-  };
-
-  const statusInfo = getStatusLabel(object.status);
-
-  return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-xl font-semibold text-gray-800">{object.name}</h3>
-          <span className={`text-sm font-medium ${statusInfo.color}`}>
-            {statusInfo.label}
-          </span>
-        </div>
-        
-        <div className="space-y-2 mb-4">
-          <p className="text-blue-600 font-medium">{getTypeLabel(object.type)}</p>
-          <p className="text-gray-600">📍 {getDistrictLabel(object.district)} район</p>
-          <p className="text-gray-600">🏠 {object.address}</p>
-          {object.yearBuilt && (
-            <p className="text-gray-600">📅 Год постройки: {object.yearBuilt}</p>
-          )}
-        </div>
-
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-          {object.description}
-        </p>
-
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <span>📍 {object.coordinates.lat.toFixed(4)}, {object.coordinates.lng.toFixed(4)}</span>
-          <span className="bg-gray-100 px-2 py-1 rounded text-xs">
-            {object.source}
-          </span>
-        </div>
-      </div>
-    </div>
   );
 };
 
@@ -103,14 +53,14 @@ const Filters: React.FC<{
             onChange={(e) => onDistrictChange(e.target.value)}
           >
             <option value="">Все районы</option>
-            <option value="CENTRAL">Центральный</option>
-            <option value="DZERZHINSKY">Дзержинский</option>
-            <option value="VOROSHILOVSKY">Ворошиловский</option>
-            <option value="SOVETSKY">Советский</option>
-            <option value="TRAKTOROZAVODSKY">Тракторозаводский</option>
-            <option value="KRASNOARMEYSKY">Красноармейский</option>
-            <option value="KIROVSKY">Кировский</option>
-            <option value="KRASNOOKTYABRSKY">Краснооктябрьский</option>
+            <option value="Центральный">Центральный</option>
+            <option value="Дзержинский">Дзержинский</option>
+            <option value="Ворошиловский">Ворошиловский</option>
+            <option value="Советский">Советский</option>
+            <option value="Тракторозаводский">Тракторозаводский</option>
+            <option value="Красноармейский">Красноармейский</option>
+            <option value="Кировский">Кировский</option>
+            <option value="Краснооктябрьский">Краснооктябрьский</option>
           </select>
         </div>
 
@@ -123,13 +73,15 @@ const Filters: React.FC<{
             onChange={(e) => onTypeChange(e.target.value)}
           >
             <option value="">Все типы</option>
-            <option value="PARK">🌳 Парк</option>
-            <option value="SQUARE">🌿 Сквер</option>
-            <option value="PLAYGROUND">🎠 Детская площадка</option>
-            <option value="SPORTS_GROUND">⚽ Спортивная площадка</option>
-            <option value="EMBANKMENT">🌊 Набережная</option>
-            <option value="FOUNTAIN">⛲ Фонтан</option>
-            <option value="PLAZA">🏛️ Площадь</option>
+            <option value="парк">🌳 Парк</option>
+            <option value="сквер">🌿 Сквер</option>
+            <option value="детская площадка">🎠 Детская площадка</option>
+            <option value="спортивная площадка">⚽ Спортивная площадка</option>
+            <option value="набережная">🌊 Набережная</option>
+            <option value="фонтан">⛲ Фонтан</option>
+            <option value="площадь">🏛️ Площадь</option>
+            <option value="бульвар">🛣️ Бульвар</option>
+            <option value="другое">📍 Другое</option>
           </select>
         </div>
       </div>
@@ -166,18 +118,18 @@ const Stats: React.FC<{ objects: ObjectData[] }> = ({ objects }) => {
         </div>
         
         <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.byStatus.ACTIVE || 0}</div>
+          <div className="text-2xl font-bold text-green-600">{stats.byStatus['активный'] || 0}</div>
           <div className="text-sm text-gray-600">Активных</div>
         </div>
         
         <div className="text-center">
-          <div className="text-2xl font-bold text-yellow-600">{stats.byStatus.UNDER_CONSTRUCTION || 0}</div>
+          <div className="text-2xl font-bold text-yellow-600">{stats.byStatus['на реконструкции'] || 0}</div>
           <div className="text-sm text-gray-600">На реконструкции</div>
         </div>
         
         <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">{Object.keys(stats.byDistrict).length}</div>
-          <div className="text-sm text-gray-600">Районов</div>
+          <div className="text-2xl font-bold text-purple-600">{stats.byStatus['планируется'] || 0}</div>
+          <div className="text-sm text-gray-600">Планируется</div>
         </div>
       </div>
     </div>
