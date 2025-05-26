@@ -19,6 +19,11 @@ npx ts-node src/scripts/seed.ts
 npm run dev
 ```
 
+```bash
+cd back
+npx ts-node src/scripts/seed.ts
+```
+
 **Результат**: Бэкенд запущен на http://localhost:5000
 
 ### 2. Фронтенд (во втором терминале)
