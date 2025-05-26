@@ -51,7 +51,7 @@ const TestAdminPage: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-4">🛠️ Тестовая админ-панель</h1>
+        <h1 className="text-2xl font-bold mb-4">🛠️ Админ-панель</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-gray-50 p-4 rounded">
