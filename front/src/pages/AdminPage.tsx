@@ -216,7 +216,7 @@ const AdminPage: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {objects.map((object) => (
                     <tr key={object.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           {object.name}
                         </div>

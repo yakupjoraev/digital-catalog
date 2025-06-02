@@ -17,6 +17,10 @@ npm run db:generate
 npm run db:migrate
 npx ts-node src/scripts/seed.ts
 npm run dev
+
+
+
+npm run restore-all
 ```
 
 ```bash
